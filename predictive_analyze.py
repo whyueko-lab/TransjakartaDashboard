@@ -9,28 +9,34 @@ import seaborn as sns
 # 1️⃣ Load & Preprocessing
 # -------------------------
 df = pd.read_csv("dfTransjakarta.csv")
-df['tapInTime'] = pd.to_datetime(df['tapInTime'])
-df['hour'] = df['tapInTime'].dt.hour
-df['weekday'] = df['tapInTime'].dt.weekday  # 0=Senin, 6=Minggu
+df["tapInTime"] = pd.to_datetime(df["tapInTime"])
+df["hour"] = df["tapInTime"].dt.hour
+df["weekday"] = df["tapInTime"].dt.weekday  # 0=Senin, 6=Minggu
 
 # Buat target: jumlah penumpang per corridor per jam
-df_grouped = df.groupby(['corridorName', 'hour', 'weekday']).size().reset_index(name='passengers')
+df_grouped = (
+    df.groupby(["corridorName", "hour", "weekday"])
+    .size()
+    .reset_index(name="passengers")
+)
 
 # Drop rows with null corridor
-df_grouped = df_grouped.dropna(subset=['corridorName'])
+df_grouped = df_grouped.dropna(subset=["corridorName"])
 
 # -------------------------
 # 2️⃣ Encode Categorical Feature
 # -------------------------
-df_grouped = pd.get_dummies(df_grouped, columns=['corridorName'], drop_first=True)
+df_grouped = pd.get_dummies(df_grouped, columns=["corridorName"], drop_first=True)
 
 # -------------------------
 # 3️⃣ Split Data
 # -------------------------
-X = df_grouped.drop('passengers', axis=1)
-y = df_grouped['passengers']
+X = df_grouped.drop("passengers", axis=1)
+y = df_grouped["passengers"]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 # -------------------------
 # 4️⃣ Train Random Forest
@@ -50,11 +56,11 @@ print(f"R2 Score: {r2:.2f}")
 # -------------------------
 # 6️⃣ Visualisasi Prediksi vs Aktual
 # -------------------------
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(8, 6))
 sns.scatterplot(x=y_test, y=y_pred, alpha=0.5)
 plt.xlabel("Actual Passengers")
 plt.ylabel("Predicted Passengers")
 plt.title("Prediksi vs Aktual Jumlah Penumpang per Corridor per Jam")
-plt.plot([0, max(y_test)], [0, max(y_test)], 'r--')  # garis ideal
+plt.plot([0, max(y_test)], [0, max(y_test)], "r--")  # garis ideal
 plt.tight_layout()
 plt.show()
